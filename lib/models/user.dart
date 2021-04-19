@@ -1,20 +1,19 @@
-class User {
-  String name;
-  String email;
-  int userId;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-  User({
+class UserModal {
+  String email;
+  String userId;
+
+  UserModal({
     this.email,
-    this.name,
     this.userId,
   });
 //List - > Array
 //Map  = > json
-  factory User.fromJson(Map data) {
-    return User(
-      email: data['email'],
-      name: data['name'],
-      userId: data['userId'],
+  factory UserModal.fromJson(Map data) {
+    return UserModal(
+      email: data['email_address'],
+      userId: data['user_id'],
     );
   }
 

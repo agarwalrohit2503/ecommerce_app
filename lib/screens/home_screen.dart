@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce_application/constants/appColors.dart';
+import 'package:ecommerce_application/models/products.dart';
 import 'package:ecommerce_application/widgets/side_menu.dart';
+import 'package:ecommerce_application/globals.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -10,15 +13,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String _imageURL =
-      "https://i2.wp.com/ceklog.kindel.com/wp-content/uploads/2013/02/firefox_2018-07-10_07-50-11.png?fit=641%2C618&ssl=1";
-
   String _bannerUrl =
       "https://i.pinimg.com/originals/0b/a3/d6/0ba3d60362c7e6d256cfc1f37156bad9.jpg";
 
-  String _clothURL =
-      "https://previews.123rf.com/images/apiqsulaiman/apiqsulaiman1912/apiqsulaiman191200533/136019337-beautiful-female-model-wearing-malaysia-traditional-cloth-or-dress.jpg";
-  List _products = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  List<ProductModel> _products = [];
+
+  bool _isLoading = true;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    get();
+  }
+
+  get() async {
+    productCollection = firestore.collection("products");
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var _screenHeight = MediaQuery.of(context).size.height;
@@ -32,45 +46,78 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       drawer: SideMenu(),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildDiscover(),
-          Container(
-            height: _screenHeight / 5,
-            child: ListView.builder(
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              itemCount: 10,
-              itemBuilder: (context, index) {
-                return _buildCategories();
-              },
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDiscover(),
+                Container(
+                  height: _screenHeight / 5,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 10,
+                    itemBuilder: (context, index) {
+                      return _buildCategories();
+                    },
+                  ),
+                ),
+                Container(
+                  height: 50,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 8,
+                    itemBuilder: (context, index) {
+                      return _buildFilters();
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: StreamBuilder(
+                    stream: productCollection.snapshots(),
+                    builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (!snapshot.hasData) {
+                        return Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else {
+                        if (snapshot.data.docs.isEmpty) {
+                          return Center(
+                            child: Text("No Data Found"),
+                          );
+                        } else {
+                          return ListView(
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              ...snapshot.data.docs.map((e) {
+                                ProductModel product = ProductModel.fromJson(e);
+                                return _buildProduct(_screenHeight, product);
+                              })
+                            ],
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ),
+                // Expanded(
+                //   child: ListView.builder(
+                //     shrinkWrap: true,
+                //     scrollDirection: Axis.horizontal,
+                //     itemCount: 10,
+                //     itemBuilder: (context, index) {
+                //       return _buildProduct(_screenHeight);
+                //     },
+                //   ),
+                // ),
+              ],
             ),
-          ),
-          Container(
-            height: 50,
-            child: ListView.builder(
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              itemCount: 8,
-              itemBuilder: (context, index) {
-                return _buildFilters();
-              },
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              shrinkWrap: true,
-              scrollDirection: Axis.horizontal,
-              itemCount: 10,
-              itemBuilder: (context, index) {
-                return _buildProduct(_screenHeight);
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -97,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
             radius: 50,
           ),
           SizedBox(
-          height: 5,
+            height: 5,
           ),
           Text("Shoes"),
         ],
@@ -117,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  _buildProduct(_screenHeight) {
+  _buildProduct(_screenHeight, ProductModel product) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -130,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: MediaQuery.of(context).size.width * 0.5,
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: NetworkImage(_clothURL),
+                  image: NetworkImage(product.image),
                   fit: BoxFit.cover,
                 ),
                 borderRadius: BorderRadius.circular(20),
@@ -168,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Marineland Short ShortShort Short ShortShort",
+                          product.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textScaleFactor: 1.2,
@@ -192,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 5,
                             ),
                             Text(
-                              "Mumbai",
+                              product.price.toString(),
                               textScaleFactor: 0.7,
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,

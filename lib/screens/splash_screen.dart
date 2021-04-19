@@ -17,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // TODO: implement initState
     super.initState();
     Firebase.initializeApp();
-    Timer(Duration(seconds: 5), () {
+    Timer(Duration(seconds: 3), () {
       //Code to push the screen
       // Navigator.of(context).push(MaterialPageRoute(
       //   builder: (context) => LoginScreen(),
