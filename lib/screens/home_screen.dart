@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce_application/constants/appColors.dart';
+import 'package:ecommerce_application/data/getApis.dart';
+import 'package:ecommerce_application/models/product_category.dart';
 import 'package:ecommerce_application/models/products.dart';
+import 'package:ecommerce_application/screens/user_form.dart';
 import 'package:ecommerce_application/widgets/side_menu.dart';
 import 'package:ecommerce_application/globals.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
       "https://i.pinimg.com/originals/0b/a3/d6/0ba3d60362c7e6d256cfc1f37156bad9.jpg";
 
   List<ProductModel> _products = [];
+  List<ProductCategoryModel> _productCategories = [];
 
   bool _isLoading = true;
   @override
@@ -27,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   get() async {
+    _productCategories = await getProductCategoriesAPI();
     productCollection = firestore.collection("products");
     setState(() {
       _isLoading = false;
@@ -42,7 +47,13 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Text("Slice"),
         centerTitle: true,
         actions: [
-          Icon(Icons.shopping_bag_outlined),
+          InkWell(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => UserForm(),
+                ));
+              },
+              child: Icon(Icons.shopping_bag_outlined)),
         ],
       ),
       drawer: SideMenu(),
@@ -60,9 +71,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ListView.builder(
                     shrinkWrap: true,
                     scrollDirection: Axis.horizontal,
-                    itemCount: 10,
+                    itemCount: _productCategories.length,
                     itemBuilder: (context, index) {
-                      return _buildCategories();
+                      return _buildCategories(
+                          _productCategories.elementAt(index)
+                          // _productCategories[index]
+                          );
                     },
                   ),
                 ),
@@ -134,19 +148,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  _buildCategories() {
+  _buildCategories(ProductCategoryModel category) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
           CircleAvatar(
-            backgroundImage: NetworkImage(_bannerUrl),
+            backgroundImage: NetworkImage(category.categoryImage),
             radius: 50,
           ),
           SizedBox(
             height: 5,
           ),
-          Text("Shoes"),
+          Text(category.categoryName),
         ],
       ),
     );

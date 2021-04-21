@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:ecommerce_application/data/getApis.dart';
+import 'package:ecommerce_application/screens/home_screen.dart';
 import 'package:ecommerce_application/screens/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // TODO: implement initState
     super.initState();
     Firebase.initializeApp();
+
     Timer(Duration(seconds: 3), () {
       //Code to push the screen
       // Navigator.of(context).push(MaterialPageRoute(
